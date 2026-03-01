@@ -1,28 +1,23 @@
-export const dynamic = "force-dynamic";
-
 import AddToCartButton from "./AddToCartButton";
 
 async function getProduct(id: string) {
   try {
     const res = await fetch(
       `https://fakestoreapi.com/products/${id}`,
-      { cache: "no-store" }
+      {
+        cache: "no-store", 
+      }
     );
 
     if (!res.ok) {
-      console.error("API failed:", res.status);
       return null;
     }
 
     const text = await res.text();
-
-    if (!text) {
-      return null;
-    }
+    if (!text) return null;
 
     return JSON.parse(text);
-  } catch (error) {
-    console.error("Fetch error:", error);
+  } catch {
     return null;
   }
 }
@@ -30,23 +25,15 @@ async function getProduct(id: string) {
 export default async function ProductDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>; 
 }) {
-  const { id } = params;
-
-  if (!id) {
-    return (
-      <div className="p-10 text-center text-red-500">
-        Invalid product ID
-      </div>
-    );
-  }
+  const { id } = await params; 
 
   const product = await getProduct(id);
 
   if (!product) {
     return (
-      <div className="p-10 text-center text-gray-500">
+      <div className="p-10 text-center text-red-500">
         Product not found.
       </div>
     );
@@ -56,7 +43,6 @@ export default async function ProductDetail({
     <section className="bg-gray-50 min-h-screen py-16 px-4">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-10">
         <div className="grid md:grid-cols-2 gap-14">
-          
           <div className="bg-gray-100 rounded-2xl flex items-center justify-center p-8">
             <img
               src={product.image}
@@ -80,7 +66,6 @@ export default async function ProductDetail({
 
             <AddToCartButton product={product} />
           </div>
-
         </div>
       </div>
     </section>

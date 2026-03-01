@@ -21,25 +21,40 @@ type CartContextType = {
   decreaseQty: (id: number) => void;
   clearCart: () => void;
   totalPrice: number;
-  totalItems: number; // ✅ Added
+  totalItems: number;
   notification: string | null;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+ 
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
+
+    try {
+      const stored = localStorage.getItem("cart");
+      if (!stored) return [];
+
+      const parsed = JSON.parse(stored);
+
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error("Corrupted cart data. Resetting...", error);
+      localStorage.removeItem("cart");
+      return [];
+    }
+  });
+
   const [notification, setNotification] = useState<string | null>(null);
 
+  
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
+    try {
+      localStorage.setItem("cart", JSON.stringify(cart));
+    } catch (error) {
+      console.error("Failed to save cart:", error);
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
   const addToCart = (product: Product) => {
