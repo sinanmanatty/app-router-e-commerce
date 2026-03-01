@@ -1,5 +1,4 @@
 import Hero from "@/components/Hero";
-import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 
 type Product = {
@@ -21,22 +20,31 @@ async function getProducts(): Promise<Product[]> {
       next: { revalidate: 3600 },
     });
 
-    if (!res.ok) {
-      console.error("API failed with status:", res.status);
-      return [] as Product[]; // ✅ Cast here
-    }
-
-    const data = await res.json();
-
-    if (!data) {
-      return [] as Product[]; // ✅ Cast here too
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Fetch crashed:", error);
-    return [] as Product[]; // ✅ Cast
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
   }
+}
+
+// ✅ PURE SERVER COMPONENT - No client imports
+function FeaturedProductCard({ product }: { product: Product }) {
+  return (
+    <Link href={`/products/${product.id}`} className="group bg-white rounded-2xl shadow-md hover:shadow-2xl overflow-hidden transition-all">
+      <div className="h-64 bg-gray-50 flex items-center justify-center p-6">
+        <img
+          src={product.image}
+          alt={product.title}
+          className="h-48 w-auto object-contain group-hover:scale-105 transition-transform"
+        />
+      </div>
+      <div className="p-6">
+        <h3 className="font-semibold text-gray-800 line-clamp-2 mb-3">{product.title}</h3>
+        <p className="text-2xl font-bold text-green-600 mb-4">₹{product.price}</p>
+        <div className="text-sm text-gray-500">⭐ {product.rating?.rate || 'N/A'}</div>
+      </div>
+    </Link>
+  );
 }
 
 export default async function Home() {
@@ -54,11 +62,11 @@ export default async function Home() {
           </h2>
 
           {featuredProducts.length === 0 ? (
-            <p className="text-gray-500">No products available.</p>
+            <p className="text-gray-500 text-center py-20">No products available.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <FeaturedProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
