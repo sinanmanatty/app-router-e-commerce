@@ -14,15 +14,28 @@ interface Product {
 
 async function getProducts(): Promise<Product[]> {
   try {
+    console.log('🌐 Products - Fetching...');
     const res = await fetch("https://fakestoreapi.com/products?limit=20", {
       next: { revalidate: 3600 },
+      cache: 'no-store'
     });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
+    
+    console.log('✅ Products - Status:', res.status);
+    
+    if (!res.ok) {
+      console.error('❌ Products - Failed:', res.status);
+      return [];
+    }
+
+    const data = await res.json();
+    console.log('📦 Products - Loaded:', data?.length || 0);
+    return data || [];
+  } catch (error) {
+    console.error('💥 Products - Error:', error);
     return [];
   }
 }
+
 
 // ✅ SIMPLE Server Component - NO CLIENT IMPORTS
 function ProductCardSimple({ product }: { product: Product }) {

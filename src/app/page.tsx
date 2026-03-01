@@ -16,16 +16,28 @@ type Product = {
 
 async function getProducts(): Promise<Product[]> {
   try {
+    console.log('🌐 Home - Fetching products...');
     const res = await fetch("https://fakestoreapi.com/products", {
       next: { revalidate: 3600 },
+      cache: 'no-store' // Force fresh data
     });
+    
+    console.log('✅ Home - Response status:', res.status);
+    
+    if (!res.ok) {
+      console.error('❌ Home - API failed:', res.status);
+      return [];
+    }
 
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
+    const data = await res.json();
+    console.log('📦 Home - Products loaded:', data?.length || 0);
+    return data || [];
+  } catch (error) {
+    console.error('💥 Home - Fetch error:', error);
     return [];
   }
 }
+
 
 // ✅ PURE SERVER COMPONENT - No client imports
 function FeaturedProductCard({ product }: { product: Product }) {
