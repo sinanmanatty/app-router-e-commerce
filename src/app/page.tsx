@@ -15,28 +15,13 @@ type Product = {
 };
 
 async function getProducts(): Promise<Product[]> {
-  try {
-    console.log('🌐 Home - Fetching products...');
-    const res = await fetch("https://fakestoreapi.com/products", {
-      next: { revalidate: 3600 },
-      cache: 'no-store' // Force fresh data
-    });
-    
-    console.log('✅ Home - Response status:', res.status);
-    
-    if (!res.ok) {
-      console.error('❌ Home - API failed:', res.status);
-      return [];
-    }
-
-    const data = await res.json();
-    console.log('📦 Home - Products loaded:', data?.length || 0);
-    return data || [];
-  } catch (error) {
-    console.error('💥 Home - Fetch error:', error);
-    return [];
-  }
+  const res = await fetch("https://dummyjson.com/products?limit=8", {
+    next: { revalidate: 3600 }
+  });
+  const data = await res.json();
+  return data.products || [];
 }
+
 
 
 // ✅ PURE SERVER COMPONENT - No client imports

@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-
 import Link from "next/link";
 
 interface Product {
@@ -14,30 +13,21 @@ interface Product {
 
 async function getProducts(): Promise<Product[]> {
   try {
-    console.log('🌐 Products - Fetching...');
-    const res = await fetch("https://fakestoreapi.com/products?limit=20", {
-      next: { revalidate: 3600 },
-      cache: 'no-store'
+    const res = await fetch("https://dummyjson.com/products?limit=20", {
+      next: { revalidate: 3600 }
     });
     
-    console.log('✅ Products - Status:', res.status);
+    if (!res.ok) return [];
     
-    if (!res.ok) {
-      console.error('❌ Products - Failed:', res.status);
-      return [];
-    }
-
     const data = await res.json();
-    console.log('📦 Products - Loaded:', data?.length || 0);
-    return data || [];
-  } catch (error) {
-    console.error('💥 Products - Error:', error);
+    // dummyjson wraps products in { products: [...] }
+    return data.products || [];
+  } catch {
     return [];
   }
 }
 
 
-// ✅ SIMPLE Server Component - NO CLIENT IMPORTS
 function ProductCardSimple({ product }: { product: Product }) {
   return (
     <Link href={`/products/${product.id}`} className="group bg-white rounded-2xl shadow-md hover:shadow-2xl p-6 text-center">
