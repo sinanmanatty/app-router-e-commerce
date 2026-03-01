@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Hero from "@/components/Hero";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
@@ -16,16 +18,22 @@ type Product = {
 };
 
 async function getProducts(): Promise<Product[]> {
-  const res = await fetch("https://fakestoreapi.com/products", {
-    next: { revalidate: 60 },
-  });
+  try {
+    const res = await fetch("https://fakestoreapi.com/products", {
+      next: { revalidate: 60 },
+    });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch products");
+    if (!res.ok) {
+      console.error("API failed:", res.status);
+      return [];
+    }
+
+    const data = await res.json();
+    return data as Product[];
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return [];
   }
-
-  const data = await res.json();
-  return data as Product[];
 }
 
 export default async function Home() {
@@ -42,11 +50,17 @@ export default async function Home() {
             Featured Products
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {featuredProducts.length === 0 ? (
+            <p className="text-gray-500 text-center">
+              Products are currently unavailable.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
 
           <div className="mt-12 text-center">
             <Link

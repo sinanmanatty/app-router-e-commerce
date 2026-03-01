@@ -1,44 +1,62 @@
+export const dynamic = "force-dynamic";
+
 import AddToCartButton from "./AddToCartButton";
 
 async function getProduct(id: string) {
-  const res = await fetch(
-    `https://fakestoreapi.com/products/${id}`,
-    { cache: "no-store" }
-  );
+  try {
+    const res = await fetch(
+      `https://fakestoreapi.com/products/${id}`,
+      { cache: "no-store" }
+    );
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch product");
+    if (!res.ok) {
+      console.error("API failed:", res.status);
+      return null;
+    }
+
+    const text = await res.text();
+
+    if (!text) {
+      return null;
+    }
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return null;
   }
-
-  const text = await res.text();
-
-  if (!text) {
-    throw new Error("Empty response from API");
-  }
-
-  return JSON.parse(text);
 }
 
 export default async function ProductDetail({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-
-  const { id } = await params;
+  const { id } = params;
 
   if (!id) {
-    throw new Error("Invalid product ID");
+    return (
+      <div className="p-10 text-center text-red-500">
+        Invalid product ID
+      </div>
+    );
   }
 
   const product = await getProduct(id);
 
+  if (!product) {
+    return (
+      <div className="p-10 text-center text-gray-500">
+        Product not found.
+      </div>
+    );
+  }
+
   return (
     <section className="bg-gray-50 min-h-screen py-16 px-4">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-10">
-
         <div className="grid md:grid-cols-2 gap-14">
-
+          
           <div className="bg-gray-100 rounded-2xl flex items-center justify-center p-8">
             <img
               src={product.image}
@@ -46,9 +64,9 @@ export default async function ProductDetail({
               className="h-96 object-contain"
             />
           </div>
-          
+
           <div>
-            <h1 className="text-3xl font-bold text-gray-600 mb-4">
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">
               {product.title}
             </h1>
 
