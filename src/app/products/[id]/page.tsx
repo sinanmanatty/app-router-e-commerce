@@ -6,6 +6,9 @@ async function getProduct(id: string) {
   try {
     const res = await fetch(`https://fakestoreapi.com/products/${id}`, {
       cache: "no-store",
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!res.ok) {
@@ -13,10 +16,13 @@ async function getProduct(id: string) {
       return null;
     }
 
-    const data = await res.json();
-    return data; // ✅ Return data directly
+    const text = await res.text();
+    if (!text) return null;
+
+    const data = JSON.parse(text);
+    return data;
   } catch (error) {
-    console.error("Fetch error:", error);
+    console.error("Product fetch error:", error);
     return null;
   }
 }
@@ -24,15 +30,29 @@ async function getProduct(id: string) {
 export default async function ProductDetail({
   params,
 }: {
-  params: Promise<{ id: string }>; // ✅ params is now Promise
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; // ✅ AWAIT params!
+  let id: string;
+  
+  try {
+    const resolvedParams = await params;
+    id = String(resolvedParams.id);
+  } catch (error) {
+    console.error("Params error:", error);
+    id = "1"; // fallback
+  }
+
   const product = await getProduct(id);
 
   if (!product) {
     return (
-      <div className="p-10 text-center text-red-500">
-        Product not found.
+      <div className="p-10 text-center text-red-500 min-h-screen flex items-center justify-center">
+        <div>
+          <h1 className="text-2xl font-bold mb-4">Product not found</h1>
+          <a href="/products" className="text-blue-500 hover:underline">
+            ← Back to Products
+          </a>
+        </div>
       </div>
     );
   }
@@ -46,10 +66,11 @@ export default async function ProductDetail({
               <img
                 src={product.image}
                 alt={product.title || "Product"}
-                className="h-96 object-contain max-w-full"
+                className="h-96 w-full max-w-full object-contain"
               />
             ) : (
-              <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+              <div className="h-96 w-full bg-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-500">
+                <div className="w-32 h-32 bg-gray-300 rounded-lg mb-2" />
                 No image available
               </div>
             )}
@@ -59,15 +80,12 @@ export default async function ProductDetail({
             <h1 className="text-3xl font-bold text-gray-800 mb-4">
               {product.title || "Unnamed Product"}
             </h1>
-
             <p className="text-gray-600 mb-6 leading-relaxed">
               {product.description || "No description available."}
             </p>
-
             <p className="text-3xl font-bold text-green-600 mb-6">
-              ₹{(product.price || 0).toLocaleString()}
+              ₹{(Number(product.price) || 0).toLocaleString('en-IN')}
             </p>
-
             <AddToCartButton product={product} />
           </div>
         </div>
