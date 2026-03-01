@@ -18,25 +18,24 @@ type Product = {
 async function getProducts(): Promise<Product[]> {
   try {
     const res = await fetch("https://fakestoreapi.com/products", {
-      cache: "no-store", 
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) {
       console.error("API failed with status:", res.status);
-      return [];
+      return [] as Product[]; // ✅ Cast here
     }
 
-    const text = await res.text();
+    const data = await res.json();
 
-    if (!text) {
-      console.error("Empty API response");
-      return [];
+    if (!data) {
+      return [] as Product[]; // ✅ Cast here too
     }
 
-    return JSON.parse(text);
+    return data;
   } catch (error) {
     console.error("Fetch crashed:", error);
-    return [];
+    return [] as Product[]; // ✅ Cast
   }
 }
 

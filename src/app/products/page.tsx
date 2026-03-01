@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import ProductCard from "../../components/ProductCard";
 
 interface Product {
@@ -15,7 +17,7 @@ interface Product {
 
 async function getProducts(): Promise<Product[]> {
   const res = await fetch("https://fakestoreapi.com/products", {
-    next: { revalidate: 3600 }, 
+    next: { revalidate: 3600 },
   });
 
   if (!res.ok) {
