@@ -1,7 +1,8 @@
+// components/AddToCartButton.tsx
 "use client";
 
 import { useState } from "react";
-import { useCart } from "../../../context/cartContext";
+import { useCart } from "../context/cartContext";
 
 interface Product {
   id: number;
@@ -19,12 +20,13 @@ export default function AddToCartButton({ product }: { product: Product }) {
     setLoading(true);
 
     setTimeout(() => {
-      addToCart(product);
+      addToCart(product); // Add product to cart context
       setLoading(false);
       setAdded(true);
 
+      // Reset "added" state after 2s
       setTimeout(() => setAdded(false), 2000);
-    }, 500);
+    }, 500); // small delay to show loading effect
   };
 
   return (
@@ -40,11 +42,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
         ${loading ? "opacity-70 cursor-not-allowed" : ""}
       `}
     >
-      {loading
-        ? "Adding..."
-        : added
-        ? "✓ Added to Cart"
-        : "Add to Cart"}
+      {loading ? "Adding..." : added ? "✓ Added to Cart" : "Add to Cart"}
     </button>
   );
 }
